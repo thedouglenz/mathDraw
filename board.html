@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
+
+    <title>Chalk Board</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="./assets/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="./assets/css/board.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy this line! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="site-wrapper">
+
+      <div class="site-wrapper-inner">
+
+        <div class="board-container">
+
+          <div class="masthead clearfix">
+            <div class="inner">
+              <h3 class="masthead-brand"><a href="./index.html">Chalk</a></h3>
+              <ul class="nav masthead-nav">
+                <li class="active"><a href="./index.html">Home</a></li>
+                <!--<li><a href="#">Start chalking</a></li>-->
+                <li><a href="#">Sign In</a></li>
+                <li><a href="#">Sign Up</a></li>
+                <li><a href="#">[your username]</a></li>
+                <li><a href="#">[sign out]</a></li>
+                <li><a href="#">Contact</a></li>    
+              </ul>
+            </div>
+          </div>
+
+          <div class="inner board">
+          	<!--<div class="side-controls">
+          		<div class="options back-color-choices">
+	          		back
+	          	</div>
+	          	<div class="options fore-color-choices">
+	          		fore
+	          	</div>
+	        </div>-->
+            <canvas id="chalkboard" width="800px" height="600px"></canvas>
+            <div class="board-control-buttons">
+            	<a href="#" id="trash-button"><span class="glyphicon glyphicon-trash"> |</span></a>
+            	<span class="glyphicon glyphicon-chevron-left"> |</span>
+            	<span class="glyphicon glyphicon-chevron-right"> |</span>
+            	<span class="glyphicon glyphicon-floppy-disk"> |</span>
+            </div>
+          </div>
+
+          <div class="mastfoot">
+            <div class="inner">
+              <p>Copyright Douglas Lenz 2014</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="./assets/js/bootstrap.min.js"></script>
+    <!--<script src="./assets/js/docs.min.js"></script>-->
+    <script type="text/javascript">
+    	/* Chalkboard code
+    	 *
+    	 */
+    	$(document).ready(function() {
+    		canvas = document.getElementById('chalkboard');
+	    	context = canvas.getContext("2d");
+	    	context.canvas.width = 800;
+	    	context.canvas.height = 600;
+	    	if(window.innerWidth > 1080){
+	    		context.canvas.width = 900;
+	    		context.canvas.height = 650;
+	    	}
+	    	
+	    	/*
+	    	 * Draw axes
+	    	 */
+	    	function drawAxes(){
+	    		for (var x = 0.5; x < context.canvas.width; x += 10) {
+				  context.moveTo(x, 0);
+				  context.lineTo(x, context.canvas.height);
+				} 
+				for (var y = 0.5; y < context.canvas.height; y += 10) {
+				  context.moveTo(0, y);
+				  context.lineTo(context.canvas.width, y);
+				}
+	    	} drawAxes();
+	    	context.strokeStyle = "rgba(255,255,255,0.15)";
+			context.stroke();
+	    	
+	    	var clickX = new Array();
+			var clickY = new Array();
+			var clickDrag = new Array();
+			var chalking;
+			
+			function addClick(x, y, dragging)
+			{
+			  clickX.push(x);
+			  clickY.push(y);
+			  clickDrag.push(dragging);
+			}
+	    	
+	    	function redraw(){
+			  context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
+			  
+			  context.strokeStyle = "#fff";
+			  context.lineJoin = "round";
+			  context.lineWidth = 2;
+						
+			  for(var i=0; i < clickX.length; i++) {		
+			    context.beginPath();
+			    if(clickDrag[i] && i){
+			      context.moveTo(clickX[i-1], clickY[i-1]);
+			     }else{
+			       context.moveTo(clickX[i]-1, clickY[i]);
+			     }
+			     context.lineTo(clickX[i], clickY[i]);
+			     context.closePath();
+			     context.stroke();
+			  }
+			}
+	    	
+	    	
+	    	$('#chalkboard').mousedown(function(e){
+			  //var mouseX = e.pageX - this.offsetLeft;
+			  //var mouseY = e.pageY - this.offsetTop;
+					
+			  chalking = true;
+			  addClick(e.pageX - this.offsetLeft, e.pageY - this.offsetTop);
+			  redraw();
+			});
+			$('#chalkboard').mousemove(function(e){
+			  if(chalking){
+			    addClick(e.pageX - this.offsetLeft, e.pageY - this.offsetTop, true);
+			    redraw();
+			  }
+			});
+	    	$('#chalkboard').mouseup(function(e){
+			  chalking = false;
+			});
+			$('#chalkboard').mouseleave(function(e){
+			  chalking = false;
+			});
+			
+			$("#trash-button").click(function(){
+				canvas.width = canvas.width;
+			});
+			
+    	});
+    </script>
+  </body>
+</html>
